@@ -1,2 +1,2 @@
 # pivot-table
-This query creates a pivot table to summarize monthly sums for various weeks.
+In this query, my objective is to create a pivot table summarizing monthly totals for a company across different weeks.

@@ -1,0 +1,45 @@
+-- Step 1: Create a CTE to identify distinct companies since a specific date.
+WITH distinct_companies_since_april AS (
+    SELECT DISTINCT cc.id
+    FROM client_client cc
+    JOIN job_jobrequest jj ON jj.client_id = cc.id
+    JOIN auth_user au ON au.id = cc.user_id
+    WHERE jj.date >= '2021-09-27'
+    AND jj.agency_id = '1'
+)
+
+-- Step 2: Calculate monthly sums and group by week and company.
+SELECT
+    cc.id AS companyID,
+    cc.company_name AS companyname,
+    COALESCE(SUM(CASE WHEN week = date_trunc('week', NOW()) - INTERVAL '14 week' THEN monthTotal ELSE NULL END), 0) AS "week 37",
+    COALESCE(SUM(CASE WHEN week = date_trunc('week', NOW()) - INTERVAL '13 week' THEN monthTotal ELSE NULL END), 0) AS "week 38",
+    COALESCE(SUM(CASE WHEN week = date_trunc('week', NOW()) - INTERVAL '12 week' THEN monthTotal ELSE NULL END), 0) AS "week 39",
+    COALESCE(SUM(CASE WHEN week = date_trunc('week', NOW()) - INTERVAL '11 week' THEN monthTotal ELSE NULL END), 0) AS "week 40",
+    COALESCE(SUM(CASE WHEN week = date_trunc('week', NOW()) - INTERVAL '10 week' THEN monthTotal ELSE NULL END), 0) AS "week 41",
+    COALESCE(SUM(CASE WHEN week = date_trunc('week', NOW()) - INTERVAL '9 week' THEN monthTotal ELSE NULL END), 0) AS "week 42",
+    COALESCE(SUM(CASE WHEN week = date_trunc('week', NOW()) - INTERVAL '8 week' THEN monthTotal ELSE NULL END), 0) AS "week 43",
+    COALESCE(SUM(CASE WHEN week = date_trunc('week', NOW()) - INTERVAL '7 week' THEN monthTotal ELSE NULL END), 0) AS "week 44",
+    COALESCE(SUM(CASE WHEN week = date_trunc('week', NOW()) - INTERVAL '6 week' THEN monthTotal ELSE NULL END), 0) AS "week 45",
+    COALESCE(SUM(CASE WHEN week = date_trunc('week', NOW()) - INTERVAL '5 week' THEN monthTotal ELSE NULL END), 0) AS "week 46",
+    COALESCE(SUM(CASE WHEN week = date_trunc('week', NOW()) - INTERVAL '4 week' THEN monthTotal ELSE NULL END), 0) AS "week 47",
+    COALESCE(SUM(CASE WHEN week = date_trunc('week', NOW()) - INTERVAL '3 week' THEN monthTotal ELSE NULL END), 0) AS "week 48",
+    COALESCE(SUM(CASE WHEN week = date_trunc('week', NOW()) - INTERVAL '2 week' THEN monthTotal ELSE NULL END), 0) AS "week 49",
+    COALESCE(SUM(CASE WHEN week = date_trunc('week', NOW()) - INTERVAL '1 week' THEN monthTotal ELSE NULL END), 0) AS "week 50",
+    COALESCE(SUM(CASE WHEN week = date_trunc('week', NOW()) - INTERVAL '0 week' THEN monthTotal ELSE NULL END), 0) AS "This week",
+    SUM(monthTotal) AS "total"
+FROM (
+    -- Subquery: Calculate monthly sums and group by week and company.
+    SELECT
+        DATE_TRUNC('week', jj.date) AS week,
+        cc.id AS companyID,
+        cc.company_name AS companyname,
+        SUM(bb.client_total_cost - bb.freelancer_total_pay) AS monthTotal
+    FROM client_client cc
+    JOIN job_jobrequest jj ON jj.client_id = cc.id
+    JOIN booking_booking bb ON bb.jobrequest_id = jj.id
+    JOIN distinct_companies_since_april dcsa ON dcsa.id = cc.id
+    GROUP BY 1, 2, 3
+    ORDER BY 2, 1
+) AS monthly_sums
+GROUP BY 1, 2;
